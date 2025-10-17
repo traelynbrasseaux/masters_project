@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pose Form Demo</title>
+    <style>
+      body { margin: 0; background: #101014; color: #f0f0f0; font-family: system-ui, Arial; }
+      #wrap { display: flex; height: 100vh; gap: 16px; padding: 12px; box-sizing: border-box; }
+      #left { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
+      #right { width: 320px; }
+      #video { display: none; }
+      #canvas { max-width: 100%; width: 100%; height: auto; }
+      h2 { margin: 8px 0; }
+      .ok { color: #38d978; }
+      .warn { color: #ffd84d; }
+      .bad { color: #ff4d6d; }
+      label { display:block; margin-top: 10px; }
+      select, input { width: 100%; padding: 6px; background: #1a1a22; color: #fff; border: 1px solid #333; border-radius: 6px; }
+    </style>
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <div id="wrap">
+      <div id="left">
+        <video id="video" playsinline></video>
+        <canvas id="canvas"></canvas>
+      </div>
+      <div id="right">
+        <h2>Pose Form Demo</h2>
+        <label>Model</label>
+        <select id="model">
+          <option value="lite">Lite</option>
+          <option value="full">Full</option>
+          <option value="heavy">Heavy</option>
+        </select>
+        <label>Resolution</label>
+        <select id="res">
+          <option value="640x360">640×360</option>
+          <option value="960x540">960×540</option>
+          <option value="1280x720">1280×720</option>
+        </select>
+        <div style="margin-top:12px">
+          <div>Status: <span id="status">—</span></div>
+          <div>Angles: <span id="angles">—</span></div>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
+
+

@@ -1,0 +1,16 @@
+{
+  "knee_safe": [90, 180],
+  "knee_caution": [
+    [80, 90]
+  ],
+  "hip_safe": [160, 180],
+  "hip_caution": [
+    [140, 160]
+  ],
+  "torso_safe": [160, 180],
+  "torso_caution": [
+    [140, 160]
+  ]
+}
+
+
