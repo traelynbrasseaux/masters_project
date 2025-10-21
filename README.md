@@ -38,13 +38,25 @@ You can also activate the venv if preferred: `.\.venv\Scripts\Activate` (PowerSh
 
 ## Running the desktop pipeline
 ```powershell
-.\.venv\Scripts\python pose_pipeline.py --exercise squats \
-  --width 640 --height 360 --model-complexity 0 --alpha 0.4
+# one line
+python .\pose_pipeline.py --exercise squats --proc-width 640 --proc-height 360 --display-scale 1.5 --model-complexity 0 --alpha 0.4
+
+# or using the venv's python without activation
+.\.venv\Scripts\python .\pose_pipeline.py --exercise squats --proc-width 640 --proc-height 360 --display-scale 1.5 --model-complexity 0 --alpha 0.4
+
+# multiline in PowerShell (use backticks ` for line continuation)
+python .\pose_pipeline.py --exercise squats `
+  --proc-width 640 --proc-height 360 `
+  --display-scale 1.5 `
+  --model-complexity 0 `
+  --alpha 0.4
 ```
 
 Notes:
 - Press `q` to quit the window.
-- Flags: `--frame-skip N` processes every N+1 frames; higher values can improve performance.
+- Flags: `--proc-width/--proc-height` control processing resolution, independent of display size.
+- Use `--display-scale` to scale up the window (e.g., 1.5, 2.0) or `--fullscreen` to fill the screen.
+- `--frame-skip N` processes every N+1 frames; higher values can improve performance.
 - Angle zones can be customized in `configs/squats.json`.
 
 ## Optional: Web demo
