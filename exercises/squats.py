@@ -22,9 +22,6 @@ class SquatsExercise:
         self.knee_safe = (90, 180)
         self.knee_caution = (80, 90)
 
-        self.hip_safe = (160, 180)
-        self.hip_caution = (140, 160)
-
         self.torso_safe = (160, 180)
         self.torso_caution = (140, 160)
 
@@ -58,37 +55,7 @@ class SquatsExercise:
         torso_ref = (torso_center[0], torso_center[1] - 50)
 
         knee_angle = calculate_angle(hip, knee, ankle)
-        hip_angle = calculate_angle(torso_center, hip, knee)
         torso_angle = calculate_angle(torso_ref, torso_center, hip)
-
-        # Knee valgus proxy: normalized signed offset of knee from the hip-ankle line.
-        # Compute projection of knee onto the hip-ankle line and signed offset towards torso (medial) side.
-        hx, hy = hip
-        ax, ay = ankle
-        kx, ky = knee
-        vx, vy = ax - hx, ay - hy
-        v_len_sq = float(vx * vx + vy * vy)
-        if v_len_sq <= 1e-6:
-            t = 0.0
-            px, py = hx, hy
-            norm_offset = 0.0
-            inward = False
-        else:
-            wx, wy = kx - hx, ky - hy
-            t = max(0.0, min(1.0, (wx * vx + wy * vy) / v_len_sq))
-            px = hx + int(round(t * vx))
-            py = hy + int(round(t * vy))
-            # Perpendicular unit normal; choose sign so that + is towards torso (medial) side
-            v_len = math.hypot(vx, vy)
-            nx_raw, ny_raw = vy / v_len, -vx / v_len  # one of the two perpendiculars
-            medial_dir_x = 1.0 if (torso_center[0] - hx) >= 0 else -1.0
-            if nx_raw * medial_dir_x < 0:
-                nx, ny = -nx_raw, -ny_raw
-            else:
-                nx, ny = nx_raw, ny_raw
-            offset_px = (kx - px) * nx + (ky - py) * ny  # signed offset (+ inward)
-            norm_offset = abs(offset_px) / max(v_len, 1e-6)
-            inward = offset_px > 0
 
         return {
             "points": {
@@ -99,27 +66,19 @@ class SquatsExercise:
                 "ankle": ankle,
                 "torso_center": torso_center,
                 "torso_ref": torso_ref,
-                "knee_proj": (px, py),
             },
             "angles": {
                 "knee": knee_angle,
-                "hip": hip_angle,
                 "torso": torso_angle,
-            },
-            "valgus": {
-                "norm": float(norm_offset),
-                "inward": bool(inward),
             },
         }
 
     def classify_state(self, metrics: Dict[str, object]) -> Dict[str, object]:
         angles = metrics["angles"]  # type: ignore[index]
         knee = float(angles["knee"])  # type: ignore[index]
-        hip = float(angles["hip"])  # type: ignore[index]
         torso = float(angles["torso"])  # type: ignore[index]
 
         knee_color = get_angle_color(knee, self.knee_safe, self.knee_caution)
-        hip_color = get_angle_color(hip, self.hip_safe, self.hip_caution)
         torso_color = get_angle_color(torso, self.torso_safe, self.torso_caution)
 
         # Overall status: worst of the three
@@ -130,7 +89,6 @@ class SquatsExercise:
                 return 1
             return 2
 
-        # Exclude hip from determining overall status to avoid flagging normal hip flexion
         worst = max(level(knee_color), level(torso_color))
         status = "good" if worst == 0 else ("caution" if worst == 1 else "unsafe")
         reasons = []
@@ -140,22 +98,9 @@ class SquatsExercise:
             if level(torso_color) == worst:
                 reasons.append("Torso alignment off")
 
-        # Knee valgus evaluation (only when sufficiently flexed to be meaningful)
-        v = metrics.get("valgus", {})  # type: ignore[assignment]
-        if isinstance(v, dict):
-            norm = float(v.get("norm", 0.0))
-            inward = bool(v.get("inward", False))
-            if knee < 150.0 and inward:
-                if norm >= self.valgus_unsafe_norm:
-                    status = "unsafe"
-                    reasons.append("Knee valgus (inward collapse)")
-                elif norm >= self.valgus_caution_norm and status == "good":
-                    status = "caution"
-                    reasons.append("Knee valgus (inward collapse)")
-
         return {
             "status": status,
-            "colors": {"knee": knee_color, "hip": hip_color, "torso": torso_color},
+            "colors": {"knee": knee_color, "torso": torso_color},
             "reasons": reasons,
         }
 
@@ -202,7 +147,7 @@ class SquatsExercise:
 
         # Draw joints and bones with thicker lines
         cv2.circle(frame, knee, 10, colors["knee"], -1)  # type: ignore[index]
-        cv2.circle(frame, hip, 10, colors["hip"], -1)  # type: ignore[index]
+        cv2.circle(frame, hip, 10, colors["torso"], -1)  # type: ignore[index]
         cv2.circle(frame, torso_center, 10, colors["torso"], -1)  # type: ignore[index]
 
         cv2.line(frame, hip, knee, colors["knee"], 6)  # type: ignore[index]
@@ -214,36 +159,16 @@ class SquatsExercise:
         h_frame = frame.shape[0]
         cv2.line(frame, (torso_center[0], 0), (torso_center[0], h_frame), (60, 60, 60), 1)  # type: ignore[index]
 
-        # Angle text (hide hip angle per request)
+        # Angle text (hip angle removed)
         cv2.putText(frame, f"Knee: {int(angles['knee'])}{self._deg}", (knee[0] - 60, knee[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, colors["knee"], 2)  # type: ignore[index]
         cv2.putText(frame, f"Torso: {int(angles['torso'])}{self._deg}", (torso_center[0] - 60, torso_center[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, colors["torso"], 2)  # type: ignore[index]
 
         # Angle arcs at key joints for clearer visualization
         self._draw_angle_arc(frame, knee, hip, ankle, colors["knee"])  # type: ignore[index]
-        self._draw_angle_arc(frame, hip, torso_center, knee, colors["hip"])  # type: ignore[index]
+        # Hip angle arc removed
         self._draw_angle_arc(frame, torso_center, torso_ref, hip, colors["torso"])  # type: ignore[index]
 
-        # Knee valgus overlay: show offset from hip-ankle line with caution/unsafe coloring
-        valgus = metrics.get("valgus", {})  # type: ignore[assignment]
-        if isinstance(valgus, dict):
-            norm = float(valgus.get("norm", 0.0))
-            inward = bool(valgus.get("inward", False))
-            knee_proj = pts.get("knee_proj", None)  # type: ignore[assignment]
-            if knee_proj and inward:
-                if norm >= self.valgus_unsafe_norm:
-                    v_color = (0, 0, 255)
-                elif norm >= self.valgus_caution_norm:
-                    v_color = (0, 255, 255)
-                else:
-                    v_color = (0, 255, 0)
-                # Reference hip-ankle line
-                cv2.line(frame, hip, ankle, (90, 90, 90), 1)  # type: ignore[index]
-                # Offset vector from projection to knee
-                cv2.line(frame, knee_proj, knee, v_color, 3)  # type: ignore[arg-type]
-                # Label near knee
-                pct = int(round(norm * 100))
-                label = f"Valgus: {pct}%"
-                cv2.putText(frame, label, (knee[0] + 10, knee[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, v_color, 2)  # type: ignore[index]
+        # Knee valgus overlay removed for side-view only implementation
 
         # HUD: responsive top banner spanning width with left/right aligned text
         banner = classification["status"].upper()  # type: ignore[index]
@@ -306,20 +231,10 @@ class SquatsExercise:
             if "knee_caution" in data:
                 self.knee_caution = to_ranges(data["knee_caution"])  # type: ignore[assignment]
 
-            if "hip_safe" in data:
-                self.hip_safe = to_tuple(data["hip_safe"])  # type: ignore[assignment]
-            if "hip_caution" in data:
-                self.hip_caution = to_ranges(data["hip_caution"])  # type: ignore[assignment]
-
             if "torso_safe" in data:
                 self.torso_safe = to_tuple(data["torso_safe"])  # type: ignore[assignment]
             if "torso_caution" in data:
                 self.torso_caution = to_ranges(data["torso_caution"])  # type: ignore[assignment]
-            # Optional valgus thresholds
-            if "valgus_caution_norm" in data:
-                self.valgus_caution_norm = float(data["valgus_caution_norm"])  # type: ignore[assignment]
-            if "valgus_unsafe_norm" in data:
-                self.valgus_unsafe_norm = float(data["valgus_unsafe_norm"])  # type: ignore[assignment]
         except Exception:
             # Ignore config errors and keep defaults
             return

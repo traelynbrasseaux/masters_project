@@ -74,7 +74,7 @@ This project targets ACL injury prevention and rehab support for adolescent and 
 - **Adolescent ACL management and rehab progression**: An open‑access review (PMCID: PMC11439179) underscores milestone‑based progression, objective strength/functional testing, and patient‑reported outcomes when guiding return to sport in youth, aligning with our plan to surface objective readiness metrics and to avoid purely time‑based decisions. [Link](https://pmc.ncbi.nlm.nih.gov/articles/PMC11439179/?utm_source=chatgpt.com)
 
 ### How this toolkit addresses the problem
-- **Wearables/real‑time biomechanics monitoring (computer vision)**: Uses webcam/pose estimation to approximate lower‑extremity kinematics, compute joint angles, and highlight risky patterns (e.g., excessive knee valgus, limited hip/knee flexion on descent, trunk sway) during common training tasks like squats and (extendable) jump‑landing and cutting drills.
+- **Wearables/real‑time biomechanics monitoring (computer vision)**: Uses webcam/pose estimation to approximate lower‑extremity kinematics, compute joint angles, and highlight risky patterns (e.g., limited knee flexion on descent and trunk sway) during common training tasks like squats. Knee valgus detection will be added when concurrent front‑ and side‑view capture is enabled; the current side‑view implementation does not output knee valgus or hip angle. (Extendable to jump‑landing and cutting drills.)
 - **Collaborative, data‑driven training**: Produces interpretable metrics and pass/fail thresholds (configurable in `configs/`) that coaches can standardize across teams; supports consistent technique cues derived from evidence‑based prevention programs.
 - **AI‑driven risk and personalized rehab support**: The classification pipeline and thresholds can be tailored per athlete profile (sex, age group, training phase) and extended with progression gates that mirror milestone‑based clearance criteria (strength symmetry, functional tests) emphasized in the literature.
 - **Telehealth and rural access**: Runs on commodity webcams with no dedicated sensors, enabling remote check‑ins and at‑home exercise supervision; outputs can be shared asynchronously with clinicians when specialty access is limited.
@@ -83,9 +83,11 @@ This project targets ACL injury prevention and rehab support for adolescent and 
 - Pose pipeline with visual overlays and traffic‑light feedback for squats.
 - Configurable angle thresholds per exercise in `configs/` for rapid tuning to local programs.
 - Modular `exercises/` design for adding ACL‑relevant tasks (e.g., double‑/single‑leg squat, drop jump, landing mechanics, step‑down) that target dynamic valgus and trunk control.
+ - Side‑view squat metrics: knee flexion and trunk angle are reported; hip angle output is currently removed.
+ - Knee valgus detection is disabled for side‑only capture and will return with a future multi‑view (front + side) setup.
 
 ### Planned extensions (for Louisiana context)
-- Add jump‑landing and change‑of‑direction screens with knee valgus indexing and side‑to‑side comparisons.
+- Enable concurrent front‑ and side‑view squat analysis to support knee valgus indexing; add jump‑landing and change‑of‑direction screens with side‑to‑side comparisons.
 - Simple readiness widgets (e.g., progression gates) to support milestone‑based rehab rather than time‑only decisions.
 - Profile‑aware presets for female athletes and youth age bands consistent with prevention literature. (set on user side)
 
