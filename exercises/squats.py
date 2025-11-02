@@ -256,16 +256,12 @@ class SquatsExercise:
         font_large = cv2.FONT_HERSHEY_SIMPLEX
         font_small = cv2.FONT_HERSHEY_SIMPLEX
         banner_scale, banner_th = 1.0, 2
-        counts_scale, counts_th = 0.75, 2
-
         (banner_w, banner_h), _ = cv2.getTextSize(banner, font_large, banner_scale, banner_th)
-        rep_text = f"Correct: {counts['correct']}  Incorrect: {counts['incorrect']}"
-        (counts_w, counts_h), _ = cv2.getTextSize(rep_text, font_small, counts_scale, counts_th)
 
         # Draw full-width top bar
         bar_x0, bar_y0 = 14, 14
         bar_x1 = max(bar_x0 + banner_w + 2 * pad, w_frame - 14)
-        bar_h = max(banner_h, counts_h) + 2 * pad
+        bar_h = banner_h + 2 * pad
         bar_y1 = bar_y0 + bar_h
         cv2.rectangle(frame, (bar_x0, bar_y0), (bar_x1, bar_y1), (30, 30, 30), -1)
 
@@ -274,10 +270,7 @@ class SquatsExercise:
         banner_y = bar_y0 + pad + banner_h
         cv2.putText(frame, banner, (banner_x, banner_y), font_large, banner_scale, banner_color, banner_th)
 
-        # Right-aligned counts, clamped inside the bar
-        counts_x = max(bar_x0 + pad, min(bar_x1 - pad - counts_w, w_frame - pad - counts_w))
-        counts_y = bar_y0 + pad + counts_h
-        cv2.putText(frame, rep_text, (counts_x, counts_y), font_small, counts_scale, (255, 255, 255), counts_th)
+        # Rep counter removed from top bar per request
 
         # Reasons panel (if any) below the bar, kept within width
         reasons = classification.get("reasons", [])  # type: ignore[assignment]

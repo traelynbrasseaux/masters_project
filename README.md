@@ -1,6 +1,6 @@
 # HealthTech Challenge – Pose-based Exercise Form and Injury-Prevention Toolkit
 
-Computer-vision toolkit for analyzing exercise form using pose estimation. It uses MediaPipe Pose and OpenCV to compute joint angles, classify form quality (good/caution/unsafe), overlay visual feedback, and count repetitions. The included exercise is `squats` with configurable angle thresholds.
+Computer-vision toolkit for analyzing exercise form using pose estimation. It uses MediaPipe Pose and OpenCV to compute joint angles, classify form quality (good/caution/unsafe), and overlay visual feedback. The included exercise is `squats` with configurable angle thresholds.
 
 ## Project structure
 ```
@@ -8,7 +8,7 @@ configs/
   squats.json            # Angle thresholds for squats (safe/caution)
 exercises/
   __init__.py
-  squats.py              # Squats logic: metrics, classification, overlay, rep counting
+  squats.py              # Squats logic: metrics, classification, overlay
 utils/
   geometry.py            # Angle math, EMA smoothing, color mapping
 pose_pipeline.py         # Webcam pipeline: capture → pose → metrics → overlay
